@@ -25,7 +25,15 @@ your PC cleanly when the power fails.
 ## Install (Windows)
 Download `WinNUT2-Setup-x.y.z.exe` from the [Releases](https://github.com/demofilm/terra_nut/releases) page and run it.
 It installs per user without admin rights (choose "for all users" in the dialog if you want).
-The installer is not code-signed, so Windows SmartScreen may warn: choose *More info → Run anyway*.
+### "Windows protected your PC" (SmartScreen)
+The installer is **not code-signed** (a certificate costs money and this project is free), so Windows SmartScreen shows a warning for downloaded files it does not know yet. This is normal for small free tools. You can continue in one of these ways:
+
+1. In the blue SmartScreen window click **More info**, then **Run anyway**.
+2. Or, before running: right-click the downloaded `.exe` → **Properties** → tick **Unblock** at the bottom → OK. In PowerShell: `Unblock-File .\WinNUT2-Setup-2.0.1.exe`.
+
+Check that you have the real file: the SHA-256 checksum is in the release notes. Compare with `Get-FileHash .\WinNUT2-Setup-2.0.1.exe -Algorithm SHA256`.
+
+If you use **Smart App Control** (Windows 11, "On" mode), Windows may block unsigned apps completely, without a "Run anyway" button. Then either build the app yourself (see *Build from source*), or switch Smart App Control to *Evaluation/Off* in *Windows Security → App & browser control* (note: once turned off it cannot be turned on again without reinstalling Windows). The app does not need admin rights and does not change system files.
 
 Then open **Settings** and enter the NAS address, UPS name (usually `ups`) and, if required, the NUT user and password.
 Settings are stored in `%APPDATA%\WinNUT2\settings.json` (Linux: `~/.config/WinNUT2/settings.json`).
@@ -64,4 +72,5 @@ installer\build-installer.ps1                      # Windows installer (needs In
 - If `settings.json` is not valid JSON, the app falls back to defaults.
 ## License
 Free use, no selling, no warranty: see [LICENSE](LICENSE). Third-party components: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
 
