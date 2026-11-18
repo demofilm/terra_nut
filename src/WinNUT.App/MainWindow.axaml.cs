@@ -34,14 +34,23 @@ public partial class MainWindow : Window
     {
         UpsTitle.Text = string.Join(' ', new[] { s.Manufacturer, s.Model }.Where(x => !string.IsNullOrWhiteSpace(x))) is { Length: > 0 } t ? t : "UPS";
         Set(GBattery, s.BatteryCharge); Set(GLoad, s.Load); Set(GRuntime, s.Runtime?.TotalMinutes);
+        if (s.InputVoltageNominal is { } inom)
+        { GInV.Nominal = inom; GInV.Minimum = s.InputTransferLow ?? inom * 0.75; GInV.Maximum = s.InputTransferHigh ?? inom * 1.3; }
+        else { GInV.Nominal = double.NaN; GInV.Minimum = 0; GInV.Maximum = 300; }
         Set(GInV, s.InputVoltage);
         // Many UPSes (e.g. APC Back-UPS via usbhid) do not report output voltage / frequency: fall back to what they do report.
         if (s.OutputVoltage is null && s.EstimatedPower is { } pw)
         {
             GOutV.Title = "Power"; GOutV.Unit = "W"; GOutV.Minimum = 0; GOutV.Maximum = s.NominalPower ?? Math.Max(1000, pw * 1.5);
-            GOutV.InvertColors = true; Set(GOutV, pw);
+            GOutV.InvertColors = true; GOutV.Nominal = double.NaN; Set(GOutV, pw);
         }
-        else { GOutV.Title = "Output"; GOutV.Unit = "V"; GOutV.Minimum = 0; GOutV.Maximum = 300; GOutV.InvertColors = false; Set(GOutV, s.OutputVoltage); }
+        else
+        {
+            GOutV.Title = "Output"; GOutV.Unit = "V"; GOutV.InvertColors = false;
+            if (s.OutputVoltageNominal is { } onom) { GOutV.Nominal = onom; GOutV.Minimum = s.InputTransferLow ?? onom * 0.75; GOutV.Maximum = s.InputTransferHigh ?? onom * 1.3; }
+            else { GOutV.Nominal = double.NaN; GOutV.Minimum = 0; GOutV.Maximum = 300; }
+            Set(GOutV, s.OutputVoltage);
+        }
         if (s.InputFrequency is null && s.BatteryVoltage is { } bv)
         {
             GFreq.Title = "Battery"; GFreq.Unit = "V"; GFreq.Decimals = 1; GFreq.Minimum = 0;
@@ -75,4 +84,5 @@ public partial class MainWindow : Window
         LogText.Text = string.Join('\n', _log.TakeLast(50));
     });
 }
+
 

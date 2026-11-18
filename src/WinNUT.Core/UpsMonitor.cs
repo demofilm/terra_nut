@@ -88,10 +88,19 @@ public sealed class UpsMonitor : IAsyncDisposable
             {
                 _shutdownIssued = true;
                 ShutdownTriggered?.Invoke(d.Reason!);
-                _ = _shutdown.ShutdownAsync(d.Reason!, _o.ShutdownDelay ?? TimeSpan.FromSeconds(30));
+                _ = RunShutdownAsync(d.Reason!);
             }
         }
     }
 
+    public event Action<string>? ShutdownFailed;
+
+    private async Task RunShutdownAsync(string reason)
+    {
+        try { await _shutdown.ShutdownAsync(reason, _o.ShutdownDelay ?? TimeSpan.FromSeconds(30)); }
+        catch (Exception ex) { _shutdownIssued = false; ShutdownFailed?.Invoke(ex.Message); }
+    }
+
     public async ValueTask DisposeAsync() => await StopAsync();
 }
+

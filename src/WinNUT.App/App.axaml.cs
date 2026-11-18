@@ -79,7 +79,9 @@ public partial class App : Application
     private void StartMonitor()
     {
         _ = StopMonitorAsync();
-        var m = new UpsMonitor(_settings.ToMonitorOptions(), _shutdown);
+        IShutdownExecutor exec = _settings.ShutdownDryRun ? new DryRunShutdownExecutor(msg => _main?.Log(msg)) : _shutdown;
+               var m = new UpsMonitor(_settings.ToMonitorOptions(), exec);
+               m.ShutdownFailed += err => _main?.Log("SHUTDOWN FAILED: " + err);
         m.ConnectionChanged += (s, d) => { _main?.SetConnection(s, d); SetTray(s == ConnectionState.Connected ? Colors.SeaGreen : Colors.Gray, $"WinNUT: {s}"); };
         m.SnapshotUpdated += s =>
         {
@@ -88,10 +90,10 @@ public partial class App : Application
             SetTray(ob ? Colors.Orange : Colors.SeaGreen, $"{MainWindow.Describe(s.Status)} — {s.BatteryCharge:0}%");
         };
         m.StatusChanged += (a, b) => _main?.Log($"Status: {MainWindow.Describe(a)} → {MainWindow.Describe(b)}");
-        m.ShutdownTriggered += r => { _main?.Log($"SHUTDOWN in {_settings.ShutdownDelaySeconds:0}s: {r}"); SetTray(Colors.IndianRed, "Shutdown pending: " + r); };
+        m.ShutdownTriggered += r => { if (!_settings.ShutdownDryRun) _main?.Log($"SHUTDOWN in {_settings.ShutdownDelaySeconds:0}s: {r}"); SetTray(Colors.IndianRed, (_settings.ShutdownDryRun ? "Shutdown (test mode): " : "Shutdown pending: ") + r); };
         _monitor = m;
         m.Start();
-        _main?.Log($"Monitoring {_settings.UpsName}@{_settings.Host}:{_settings.Port}");
+        _main?.Log($"Monitoring {_settings.UpsName}@{_settings.Host}:{_settings.Port}" + (_settings.ShutdownDryRun ? "  [shutdown TEST MODE]" : ""));
     }
 
     private void SetTray(Color c, string tip) => Dispatcher.UIThread.Post(() =>
@@ -119,3 +121,5 @@ public partial class App : Application
         Dispatcher.UIThread.Post(() => desktop.Shutdown());
     }
 }
+
+

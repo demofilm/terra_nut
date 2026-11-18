@@ -16,6 +16,9 @@ your PC cleanly when the power fails.
   UPSes that do not report those (e.g. APC Back-UPS over USB) automatically show estimated **power (W)** and **battery voltage** instead.
 - Status line, event log, tray icon with status colour, minimise to tray.
 - Automatic shutdown with a configurable delay, by: minutes on battery, battery %, estimated runtime, low-battery flag (LB), forced shutdown (FSD) from the server. "Cancel pending shutdown" is in the tray menu.
+- **Test mode** (Settings): evaluates the shutdown rules and only logs what would happen, so you can try thresholds safely.
+- Mains voltage gauges are centred on the UPS nominal voltage (green around 230 V, red towards the transfer limits).
+- NUT password is stored encrypted (Windows DPAPI, current user only).
 - Automatic reconnect when the server or network goes away.
 - Windows installer (no .NET install needed), optional start with Windows.
 
@@ -49,15 +52,16 @@ installer\build-installer.ps1                      # Windows installer (needs In
 |---|---|
 | `src/WinNUT.Core` | NUT protocol client, status parsing, monitor, shutdown policy, settings. No UI. |
 | `src/WinNUT.App` | Avalonia UI: gauges, tray, settings. |
-| `tests/` | 21 xUnit tests (incl. a fake NUT server over real TCP). |
+| `tests/` | 38 xUnit tests (incl. a fake NUT server over real TCP). |
 | `tools/WinNUT.FakeServer` | Fake NUT server for manual testing. |
 | `installer/` | Inno Setup script and build script. |
 
 ## Status and limits
-- Linux build is expected to work (Avalonia, `shutdown -h`) but **has not been tested yet**. Shutdown on Linux needs root or a sudoers rule. Tray icons depend on the desktop environment.
-- The NUT password is stored in plain text in `settings.json`.
-- Not (yet) included from the original: `ups.ini` import, auto-update, translations, toast notifications.
-- Automatic shutdown has only been tested against a fake server. **Test your thresholds before relying on them.**
-
+- **Linux:** the unit tests pass and the app builds and runs on Linux (.NET 9 SDK container, X11 via Xvfb, against the fake server, including test mode). It has not been run on a real Linux desktop or against real Linux shutdown rights yet. Shutdown there needs root or a sudoers rule; tray icons depend on the desktop environment.
+- **Password:** encrypted with DPAPI on Windows. On Linux it is stored in plain text in `settings.json` (file mode 600).
+- **Shutdown:** the shutdown command line and cancel were verified for real on Windows (a shutdown 1 hour out was scheduled and cancelled again). The full policy was tested with a fake server and test mode. **Test your thresholds before relying on them.**
+- Not (yet) included from the original: `ups.ini` import, auto-update, translations. Notifications are expected to come from the NAS itself.
+- If `settings.json` is not valid JSON, the app falls back to defaults.
 ## License
 Free use, no selling, no warranty: see [LICENSE](LICENSE). Third-party components: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+

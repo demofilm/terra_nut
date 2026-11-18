@@ -28,6 +28,10 @@ public sealed class UpsSnapshot(IReadOnlyDictionary<string, string> vars, DateTi
     public double? Load => GetNumber("ups.load");
     public double? Power => GetNumber("ups.power") ?? GetNumber("ups.realpower");
     public double? LowBatteryThreshold => GetNumber("battery.charge.low");
+    public double? InputVoltageNominal => GetNumber("input.voltage.nominal");
+    public double? InputTransferLow => GetNumber("input.transfer.low");
+    public double? InputTransferHigh => GetNumber("input.transfer.high");
+    public double? OutputVoltageNominal => GetNumber("output.voltage.nominal") ?? InputVoltageNominal;
     public double? NominalPower => GetNumber("ups.realpower.nominal") ?? GetNumber("ups.power.nominal");
     public double? BatteryVoltageNominal => GetNumber("battery.voltage.nominal");
     /// <summary>Reported power, or load% x nominal power when the UPS does not report watts.</summary>
@@ -51,4 +55,5 @@ public sealed class UpsSnapshot(IReadOnlyDictionary<string, string> vars, DateTi
         return st;
     }
 }
+
 

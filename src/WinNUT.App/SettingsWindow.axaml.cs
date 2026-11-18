@@ -20,7 +20,7 @@ public partial class SettingsWindow : Window
         BatPct.Value = (decimal)(s.Shutdown.BatteryBelowPercent ?? 0);
         RtMin.Value = (decimal)(s.Shutdown.RuntimeBelow?.TotalMinutes ?? 0);
         Delay.Value = (decimal)s.ShutdownDelaySeconds;
-        Tray.IsChecked = s.MinimizeToTray;
+        Tray.IsChecked = s.MinimizeToTray; DryRun.IsChecked = s.ShutdownDryRun;
         CancelBtn.Click += (_, _) => Close(null);
         OkBtn.Click += (_, _) => { Result = Build(s); Close(Result); };
     }
@@ -37,7 +37,7 @@ public partial class SettingsWindow : Window
             Password = string.IsNullOrEmpty(Pass.Text) ? null : Pass.Text,
             PollSeconds = (double)(Poll.Value ?? 2), ReconnectSeconds = o.ReconnectSeconds,
             ShutdownDelaySeconds = (double)(Delay.Value ?? 30),
-            MinimizeToTray = Tray.IsChecked == true, StartMinimized = o.StartMinimized,
+            MinimizeToTray = Tray.IsChecked == true, ShutdownDryRun = DryRun.IsChecked == true, StartMinimized = o.StartMinimized,
             Shutdown = new ShutdownPolicy
             {
                 Enabled = ShutEnabled.IsChecked == true, OnLowBatteryFlag = ShutLb.IsChecked == true,
@@ -47,3 +47,6 @@ public partial class SettingsWindow : Window
         };
     }
 }
+
+
+

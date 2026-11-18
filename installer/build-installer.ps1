@@ -1,5 +1,5 @@
 ﻿# Builds the Windows installer: publish (self-contained win-x64) + Inno Setup.
-param([string]$Version = "2.0.0")
+param([string]$Version = "2.0.1")
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
@@ -12,3 +12,4 @@ if ($LASTEXITCODE) { throw "publish failed" }
 & $iscc "/DAppVersion=$Version" installer\WinNUT2.iss
 if ($LASTEXITCODE) { throw "ISCC failed" }
 Get-Item "artifacts\WinNUT2-Setup-$Version.exe"
+

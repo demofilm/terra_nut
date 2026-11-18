@@ -15,9 +15,10 @@ public sealed class ArcGauge : Control
     public static readonly StyledProperty<bool> HasValueProperty = AvaloniaProperty.Register<ArcGauge, bool>(nameof(HasValue));
     public static readonly StyledProperty<bool> InvertColorsProperty = AvaloniaProperty.Register<ArcGauge, bool>(nameof(InvertColors));
     public static readonly StyledProperty<int> DecimalsProperty = AvaloniaProperty.Register<ArcGauge, int>(nameof(Decimals), 0);
+    public static readonly StyledProperty<double> NominalProperty = AvaloniaProperty.Register<ArcGauge, double>(nameof(Nominal), double.NaN);
 
     static ArcGauge() => AffectsRender<ArcGauge>(ValueProperty, MinimumProperty, MaximumProperty, UnitProperty, TitleProperty,
-        HasValueProperty, InvertColorsProperty, DecimalsProperty);
+        HasValueProperty, InvertColorsProperty, DecimalsProperty, NominalProperty);
 
     public double Value { get => GetValue(ValueProperty); set => SetValue(ValueProperty, value); }
     public double Minimum { get => GetValue(MinimumProperty); set => SetValue(MinimumProperty, value); }
@@ -28,6 +29,17 @@ public sealed class ArcGauge : Control
     /// <summary>True when a high value is bad (load), false when high is good (battery).</summary>
     public bool InvertColors { get => GetValue(InvertColorsProperty); set => SetValue(InvertColorsProperty, value); }
     public int Decimals { get => GetValue(DecimalsProperty); set => SetValue(DecimalsProperty, value); }
+    /// <summary>When set (not NaN) green is centred on this value and red is at both ends (e.g. mains voltage).</summary>
+    public double Nominal { get => GetValue(NominalProperty); set => SetValue(NominalProperty, value); }
+
+    /// <summary>0 (bad) .. 1 (good) for a position t in 0..1 along the gauge.</summary>
+    private double GoodAt(double t)
+    {
+        if (double.IsNaN(Nominal) || Maximum <= Minimum) return InvertColors ? 1 - t : t;
+        var tc = Math.Clamp((Nominal - Minimum) / (Maximum - Minimum), 0.05, 0.95);
+        var d = Math.Abs(t - tc) / Math.Max(tc, 1 - tc);
+        return Math.Clamp(1.8 * (1 - d) - 0.2, 0, 1);
+    }
 
     private const int Ticks = 36;
 
@@ -42,7 +54,7 @@ public sealed class ArcGauge : Control
         {
             var span = Maximum - Minimum;
             f = span <= 0 ? 0 : Math.Clamp((Value - Minimum) / span, 0, 1);
-            good = InvertColors ? 1 - f : f;
+            good = GoodAt(f);
         }
         var col = HasValue ? Kitt.Level(good) : Kitt.Red;
         int lit = HasValue ? (int)Math.Round(f * Ticks) : 0;
@@ -52,7 +64,7 @@ public sealed class ArcGauge : Control
             double ang = (150 + 240.0 * i / (Ticks - 1)) * Math.PI / 180;
             Point p(double rr) => new(c.X + rr * Math.Cos(ang), c.Y + rr * Math.Sin(ang));
             var a = p(r - 9); var b = p(r + 9);
-            var tc = Kitt.Gradient(InvertColors ? 1 - (double)i / (Ticks - 1) : (double)i / (Ticks - 1));
+            var tc = Kitt.Gradient(GoodAt((double)i / (Ticks - 1)));
             if (i < lit)
             {
                 ctx.DrawLine(Kitt.P(tc, 0.14, 13), a, b);
@@ -77,4 +89,5 @@ public sealed class ArcGauge : Control
         ctx.DrawText(ttl, new Point(c.X - ttl.Width / 2, Bounds.Height - ttl.Height - 2));
     }
 }
+
 

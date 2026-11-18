@@ -1,7 +1,7 @@
 ﻿; WinNUT 2.0 installer (Inno Setup 6). Build with: installer\build-installer.ps1
 #define AppName "WinNUT 2.0"
 #ifndef AppVersion
-  #define AppVersion "2.0.0"
+  #define AppVersion "2.0.1"
 #endif
 #define AppExe "WinNUT2.exe"
 
@@ -56,3 +56,4 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
 
 ; Settings live in %APPDATA%\WinNUT2 and are intentionally kept on uninstall.
+

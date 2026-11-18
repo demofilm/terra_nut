@@ -171,3 +171,126 @@ public class SettingsTests
         try { Assert.Equal(3493, AppSettings.Load(p).Port); } finally { File.Delete(p); }
     }
 }
+
+public class PasswordTests
+{
+    private static string Tmp() => Path.Combine(Path.GetTempPath(), "winnut-test-" + Guid.NewGuid() + ".json");
+
+    [Fact]
+    public void Password_roundtrips_and_is_not_stored_in_plain_text_on_windows()
+    {
+        var p = Tmp();
+        try
+        {
+            new AppSettings { Username = "mon", Password = "s3cret-Ünïcode" }.Save(p);
+            var raw = File.ReadAllText(p);
+            if (OperatingSystem.IsWindows()) { Assert.DoesNotContain("s3cret", raw); Assert.Contains("dpapi:", raw); }
+            Assert.Equal("s3cret-Ünïcode", AppSettings.Load(p).Password);
+            Assert.DoesNotContain("\"Password\":", raw);
+        }
+        finally { File.Delete(p); }
+    }
+
+    [Fact]
+    public void Legacy_plain_password_is_still_read_and_then_saved_protected()
+    {
+        var p = Tmp();
+        File.WriteAllText(p, "{ \"Host\": \"nas\", \"Password\": \"oldpw\" }");
+        try
+        {
+            var s = AppSettings.Load(p);
+            Assert.Equal("oldpw", s.Password);
+            s.Save(p);
+            if (OperatingSystem.IsWindows()) Assert.DoesNotContain("oldpw", File.ReadAllText(p));
+            Assert.Equal("oldpw", AppSettings.Load(p).Password);
+        }
+        finally { File.Delete(p); }
+    }
+
+    [Fact] public void Empty_password_stays_null() => Assert.Null(PasswordProtector.Protect(""));
+    [Fact] public void Garbage_dpapi_blob_gives_null_not_exception() => Assert.Null(PasswordProtector.Unprotect("dpapi:%%%not-base64"));
+
+    [Fact]
+    public void Env_var_overrides_settings_path()
+    {
+        var old = Environment.GetEnvironmentVariable("WINNUT_SETTINGS");
+        try { Environment.SetEnvironmentVariable("WINNUT_SETTINGS", "X:\\custom.json"); Assert.Equal("X:\\custom.json", AppSettings.DefaultPath); }
+        finally { Environment.SetEnvironmentVariable("WINNUT_SETTINGS", old); }
+    }
+}
+
+public class ShutdownCommandTests
+{
+    [Fact]
+    public void Windows_command()
+    {
+        var (file, args) = ShutdownCommand.Build("low battery", TimeSpan.FromSeconds(30), true);
+        Assert.Equal("shutdown", file); Assert.Equal(["/s", "/t", "30", "/c", "WinNUT: low battery"], args);
+    }
+
+    [Theory]
+    [InlineData(0, "now")] [InlineData(30, "+1")] [InlineData(60, "+1")] [InlineData(61, "+2")] [InlineData(600, "+10")]
+    public void Linux_delay_is_rounded_up_to_whole_minutes(int secs, string expected) =>
+        Assert.Equal(["-h", expected, "WinNUT: x"], ShutdownCommand.Build("x", TimeSpan.FromSeconds(secs), false).Args);
+
+    [Fact] public void Negative_delay_is_clamped() => Assert.Equal("0", ShutdownCommand.Build("x", TimeSpan.FromSeconds(-5), true).Args[2]);
+    [Fact] public void Cancel_commands() { Assert.Equal(["/a"], ShutdownCommand.BuildCancel(true).Args); Assert.Equal(["-c"], ShutdownCommand.BuildCancel(false).Args); }
+
+    [Fact]
+    public async Task Dry_run_executor_only_logs()
+    {
+        var log = new List<string>();
+        await new DryRunShutdownExecutor(log.Add).ShutdownAsync("FSD", TimeSpan.FromSeconds(30));
+        Assert.Contains("TEST MODE", Assert.Single(log)); Assert.Contains("FSD", log[0]);
+    }
+
+    /// <summary>Opt-in (set WINNUT_REAL_SHUTDOWN_TEST=1, Windows only): schedules a real shutdown 1 hour out and cancels it immediately.</summary>
+    [Fact]
+    public async Task Real_system_executor_schedules_and_cancels()
+    {
+        if (Environment.GetEnvironmentVariable("WINNUT_REAL_SHUTDOWN_TEST") != "1" || !OperatingSystem.IsWindows()) return;
+        var ex = new SystemShutdownExecutor();
+        try { await ex.ShutdownAsync("WinNUT automated test - will be cancelled", TimeSpan.FromHours(1)); }
+        finally { await ex.CancelAsync(); }
+        // A second cancel must now fail with 1116 (no shutdown in progress) = proof the first cancel worked.
+        var psi = new System.Diagnostics.ProcessStartInfo("shutdown", "/a") { CreateNoWindow = true, UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+        using var p = System.Diagnostics.Process.Start(psi)!; await p.WaitForExitAsync();
+        Assert.Equal(1116, p.ExitCode);
+    }
+}
+
+public class MonitorFailureTests
+{
+    private sealed class Failing : IShutdownExecutor
+    {
+        public Task ShutdownAsync(string reason, TimeSpan delay) => throw new InvalidOperationException("boom");
+        public Task CancelAsync() => Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task Failing_executor_raises_ShutdownFailed()
+    {
+        using var srv = new FakeNutServer();
+        lock (srv.Vars) srv.Vars["ups.status"] = "OB LB";
+        var opts = new MonitorOptions(new("127.0.0.1", srv.Port), "ups", TimeSpan.FromMilliseconds(50), TimeSpan.FromMilliseconds(50), new ShutdownPolicy(), TimeSpan.Zero);
+        await using var m = new UpsMonitor(opts, new Failing());
+        var failed = new TaskCompletionSource<string>();
+        m.ShutdownFailed += e => failed.TrySetResult(e);
+        m.Start();
+        Assert.Equal("boom", await failed.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+    }
+}
+
+public class SnapshotExtrasTests
+{
+    [Fact]
+    public void Estimated_power_and_nominals()
+    {
+        var s = new UpsSnapshot(new Dictionary<string, string>
+        { ["ups.load"] = "20", ["ups.realpower.nominal"] = "1320", ["input.voltage.nominal"] = "230", ["input.transfer.low"] = "176", ["input.transfer.high"] = "298" }, DateTimeOffset.Now);
+        Assert.Equal(264, s.EstimatedPower!.Value, 3);
+        Assert.Equal(230, s.InputVoltageNominal); Assert.Equal(176, s.InputTransferLow); Assert.Equal(298, s.InputTransferHigh);
+        Assert.Equal(230, s.OutputVoltageNominal);
+    }
+}
+
