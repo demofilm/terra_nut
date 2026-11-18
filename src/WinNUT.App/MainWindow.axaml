@@ -1,0 +1,36 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="using:WinNUT.App"
+        x:Class="WinNUT.App.MainWindow"
+        Icon="/Assets/icon.ico" Title="WinNUT 2.0" Width="780" Height="600" MinWidth="580" MinHeight="500" Background="#070707">
+  <DockPanel Margin="16">
+    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+      <Button x:Name="SettingsBtn" DockPanel.Dock="Right" Content="SETTINGS" Foreground="#FF2B14" Background="#14FF2B14" BorderBrush="#66FF2B14" BorderThickness="1" />
+      <StackPanel>
+        <TextBlock x:Name="UpsTitle" FontSize="20" FontWeight="Bold" Foreground="#FF2B14" Text="WINNUT 2.0" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Ellipse x:Name="StateDot" Width="10" Height="10" Fill="Gray" VerticalAlignment="Center" />
+          <TextBlock x:Name="StateText" Text="Disconnected" Foreground="#CCFF2B14" />
+        </StackPanel>
+      </StackPanel>
+    </DockPanel>
+
+    <app:KittScanner x:Name="Scanner" DockPanel.Dock="Top" Margin="0,0,0,8" />
+
+    <Border DockPanel.Dock="Bottom" Margin="0,10,0,0" Padding="8" CornerRadius="6" Background="#12FF2B14" BorderBrush="#33FF2B14" BorderThickness="1">
+      <ScrollViewer Height="84"><TextBlock x:Name="LogText" FontFamily="Consolas,Menlo,monospace" FontSize="12" Foreground="#CCFF2B14" TextWrapping="Wrap" /></ScrollViewer>
+    </Border>
+
+    <TextBlock x:Name="StatusLine" DockPanel.Dock="Bottom" Margin="0,8,0,0" FontSize="16" FontWeight="SemiBold" Foreground="#FF2B14" HorizontalAlignment="Center" />
+
+    <UniformGrid Columns="3" Rows="2">
+      <app:ArcGauge x:Name="GBattery" Title="Battery" Unit="%" Minimum="0" Maximum="100" Margin="4" />
+      <app:ArcGauge x:Name="GLoad" Title="Load" Unit="%" Minimum="0" Maximum="100" InvertColors="True" Margin="4" />
+      <app:ArcGauge x:Name="GRuntime" Title="Runtime" Unit="min" Minimum="0" Maximum="60" Margin="4" />
+      <app:ArcGauge x:Name="GInV" Title="Input" Unit="V" Minimum="0" Maximum="300" Margin="4" Decimals="1" />
+      <app:ArcGauge x:Name="GOutV" Title="Output" Unit="V" Minimum="0" Maximum="300" Margin="4" />
+      <app:ArcGauge x:Name="GFreq" Title="Frequency" Unit="Hz" Minimum="0" Maximum="70" Margin="4" />
+    </UniformGrid>
+  </DockPanel>
+</Window>
+

@@ -1,0 +1,40 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WinNUT.App.SettingsWindow"
+        Icon="/Assets/icon.ico" Title="WinNUT settings" Width="440" SizeToContent="Height" WindowStartupLocation="CenterOwner" CanResize="False">
+  <StackPanel Margin="16" Spacing="8">
+    <TextBlock Text="NUT server" FontWeight="SemiBold" />
+    <Grid ColumnDefinitions="*,90" ColumnSpacing="8">
+      <TextBox x:Name="Host" PlaceholderText="Host / IP" />
+      <NumericUpDown x:Name="Port" Grid.Column="1" Minimum="1" Maximum="65535" FormatString="0" />
+    </Grid>
+    <TextBox x:Name="Ups" PlaceholderText="UPS name (e.g. ups)" />
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+      <TextBox x:Name="User" PlaceholderText="Username (optional)" />
+      <TextBox x:Name="Pass" Grid.Column="1" PlaceholderText="Password" PasswordChar="●" />
+    </Grid>
+    <NumericUpDown x:Name="Poll" Minimum="1" Maximum="300" FormatString="0" Increment="1" />
+    <TextBlock Text="Poll interval (seconds)" Opacity="0.7" FontSize="12" Margin="0,-6,0,0" />
+
+    <TextBlock Text="Automatic shutdown" FontWeight="SemiBold" Margin="0,8,0,0" />
+    <CheckBox x:Name="ShutEnabled" Content="Enable shutdown when on battery" />
+    <CheckBox x:Name="ShutLb" Content="Shut down on low-battery flag (LB)" />
+    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="2">
+      <NumericUpDown x:Name="MinOnBat" Minimum="0" Maximum="1440" FormatString="0" />
+      <TextBlock Grid.Column="1" Text="minutes on battery (0 = off)" VerticalAlignment="Center" />
+      <NumericUpDown x:Name="BatPct" Grid.Row="1" Minimum="0" Maximum="100" FormatString="0" />
+      <TextBlock Grid.Row="1" Grid.Column="1" Text="battery % or lower (0 = off)" VerticalAlignment="Center" />
+      <NumericUpDown x:Name="RtMin" Grid.Row="2" Minimum="0" Maximum="600" FormatString="0" />
+      <TextBlock Grid.Row="2" Grid.Column="1" Text="minutes runtime or less (0 = off)" VerticalAlignment="Center" />
+      <NumericUpDown x:Name="Delay" Grid.Row="3" Minimum="0" Maximum="3600" FormatString="0" />
+      <TextBlock Grid.Row="3" Grid.Column="1" Text="seconds delay before shutdown" VerticalAlignment="Center" />
+    </Grid>
+    <CheckBox x:Name="Tray" Content="Minimize to tray" />
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
+      <Button x:Name="CancelBtn" Content="Cancel" />
+      <Button x:Name="OkBtn" Content="Save" Classes="accent" />
+    </StackPanel>
+  </StackPanel>
+</Window>
+
+

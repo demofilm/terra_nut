@@ -1,0 +1,30 @@
+﻿WinNUT 2.0 - Free Use License
+
+Copyright (c) 2026 demofilm
+
+WinNUT 2.0 is inspired by, and a derivative in concept of, WinNUT-Client by gawindx
+(https://github.com/gawindx/WinNUT-Client). It was written from scratch; no source code of
+the original project was copied.
+
+1. FREE TO USE. You may use, copy, and share this software and its source code for free,
+   for any personal or internal purpose, exactly as it is provided ("as is").
+
+2. NEVER FOR MONEY. This software, and any copy or modified version of it, must never be
+   sold or offered for money. That includes selling it, charging for access to it or for
+   downloading it, bundling it in a paid product or paid service, or wrapping it in an
+   installer or website that earns money from distributing it (ads, pay-per-install, etc.).
+   Donations to the authors of this project or of the original WinNUT-Client are not covered
+   by this restriction because they are not a condition of getting the software.
+
+3. KEEP THE CREDITS. Copies and modified versions must keep this license, and must keep
+   the credit to the original WinNUT-Client by gawindx.
+
+4. NO WARRANTY. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+   AND NONINFRINGEMENT. THE AUTHORS ARE NOT LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, INCLUDING DATA LOSS OR DAMAGE CAUSED BY AN AUTOMATIC SHUTDOWN (OR BY A
+   SHUTDOWN THAT DID NOT HAPPEN). TEST THE SHUTDOWN SETTINGS BEFORE YOU RELY ON THEM.
+
+5. THIRD-PARTY COMPONENTS (Avalonia, SkiaSharp, the .NET runtime and others) are covered
+   by their own licenses; see THIRD-PARTY-NOTICES.md. Section 2 applies only to the
+   WinNUT 2.0 code, not to those components.
